@@ -1,0 +1,79 @@
+%include "io.inc"
+extern printf
+section .bss
+    num: resb 1
+section .data
+    result dd 0.00
+    msg: db "an element is %.3f, ", 0
+    sms: db "%.3f", 0
+section .text
+global CMAIN
+CMAIN:
+    finit
+    mov ebp, esp
+    xor eax, eax
+    mov eax,3
+    mov esi,1
+    mov edi,-1
+    mov ebx, eax
+loop:
+    cmp esi, 1
+    jbe specialCase
+    mul ebx
+    mul edi
+    mov ecx, eax
+    mul ebx
+    mov ecx, eax
+    mov eax, esi
+    mov edx, 2
+    mul edx
+    sub eax, 1
+    mov edx, eax
+    jmp factorial
+specialCase:
+    mul edi
+    mov ecx, eax
+    mov eax, 1
+    jmp factorial
+factorial:
+    sub edx, 1
+    mov edi, edx
+    mul edx
+    mov edx, edi
+    cmp edx, 1
+    ja factorial
+    jmp divide
+divide:    
+    mov dword [num], ecx
+    fild dword [num]
+    mov edx, ecx
+    sub esp, 4
+    mov dword [esp], eax
+    fild dword [esp]
+    add esp, 4
+    fdiv
+    sub esp, 8
+    fstp qword [esp]
+    push msg
+    fld dword [result] ; logic to sub them all goes here .... the last float is the result 
+    add esp, 4
+    fld qword [esp]
+    add esp, 8
+    fsub
+    sub esp, 8
+    fstp qword [esp]
+    push sms
+    mov edi, ecx
+    call printf
+    add esp, 12
+    NEWLINE
+    jmp finalize
+finalize:
+    mov eax, edi
+    inc esi
+    mov edi, -1
+    cmp esi, 8
+    jae finish
+    jmp loop
+finish:
+    ret
